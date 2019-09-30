@@ -18,8 +18,7 @@ use std::io::Write;
 use std::os::unix::net::UnixStream;
 use std::time::Duration;
 
-/// Minimal client structure containing necessary information to form requests and convert them to
-/// the wire format.
+/// Low level client structure to send a `Request` and get a `Response`.
 pub struct RequestTestClient {
     timeout: Duration,
 }

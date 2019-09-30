@@ -20,8 +20,7 @@ use parsec_interface::requests::{
 
 use super::RequestTestClient;
 
-/// Minimal client structure containing necessary information to form requests and convert them to
-/// the wire format.
+/// Client structure to send a `NativeOperation` and get a `NativeResult`.
 pub struct OperationTestClient {
     converter: Box<dyn Convert>,
     version_maj: u8,

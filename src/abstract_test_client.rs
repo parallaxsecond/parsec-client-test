@@ -24,6 +24,7 @@ use parsec_interface::operations::{OpListOpcodes, OpListProviders};
 use parsec_interface::requests::{request::RequestAuth, Opcode, ProviderID, Result};
 use std::collections::{HashMap, HashSet};
 
+/// Client structure automatically choosing a provider and high-level operation functions.
 pub struct TestClient {
     op_client: OperationTestClient,
     cached_opcodes: Option<HashMap<ProviderID, HashSet<Opcode>>>,
@@ -33,6 +34,11 @@ pub struct TestClient {
 }
 
 impl TestClient {
+    /// Creates a TestClient instance with no provider or authentication set.
+    ///
+    /// For each request, a provider able to execute the operation will be chosen.
+    /// The keys creates by this client will be automatically destroyed when it is dropped unless
+    /// the method `do_not_destroy_keys` is called.
     pub fn new() -> TestClient {
         TestClient {
             op_client: OperationTestClient::new(),
@@ -43,10 +49,13 @@ impl TestClient {
         }
     }
 
+    /// Manually set the provider to execute the requests. If not set, one will be chosen
+    /// automatically.
     pub fn set_provider(&mut self, provider: Option<ProviderID>) {
         self.provider = provider;
     }
 
+    /// Set the authentication body for every request.
     pub fn set_auth(&mut self, auth: Vec<u8>) {
         self.auth = RequestAuth::from_bytes(auth);
     }
@@ -124,6 +133,7 @@ impl TestClient {
             .send_operation(operation, provider, self.auth.clone())
     }
 
+    /// Creates a key with specific attributes.
     pub fn create_key(
         &mut self,
         key_name: String,
@@ -159,6 +169,7 @@ impl TestClient {
         Ok(())
     }
 
+    /// Creates a key for RSA signing.
     pub fn create_rsa_sign_key(&mut self, key_name: String) -> Result<()> {
         let result = self.create_key(
             key_name.clone(),
@@ -177,6 +188,7 @@ impl TestClient {
         result
     }
 
+    /// Imports and creates a key with specific attributes.
     pub fn import_key(
         &mut self,
         key_name: String,
@@ -214,6 +226,7 @@ impl TestClient {
         Ok(())
     }
 
+    /// Exports a public key.
     pub fn export_public_key(&mut self, key_name: String) -> Result<Vec<u8>> {
         let export = OpExportPublicKey {
             key_name,
@@ -229,6 +242,7 @@ impl TestClient {
         }
     }
 
+    /// Destroys a key.
     pub fn destroy_key(&mut self, key_name: String) -> Result<()> {
         let destroy_key = OpDestroyKey {
             key_name: key_name.clone(),
@@ -247,6 +261,7 @@ impl TestClient {
         Ok(())
     }
 
+    /// Signs a short digest with a key.
     pub fn sign(&mut self, key_name: String, hash: Vec<u8>) -> Result<Vec<u8>> {
         let asym_sign = OpAsymSign {
             key_name: key_name.clone(),
@@ -263,6 +278,7 @@ impl TestClient {
         }
     }
 
+    /// Verifies a signature.
     pub fn verify(&mut self, key_name: String, hash: Vec<u8>, signature: Vec<u8>) -> Result<()> {
         let asym_verify = OpAsymVerify {
             key_name,
@@ -276,6 +292,7 @@ impl TestClient {
         Ok(())
     }
 
+    /// Lists the provider available for the PARSEC service.
     pub fn list_providers(&mut self) -> Result<Vec<ProviderInfo>> {
         let result = self.send_operation(NativeOperation::ListProviders(OpListProviders {}))?;
 
@@ -286,6 +303,7 @@ impl TestClient {
         }
     }
 
+    /// Lists the opcodes available for one provider to execute.
     pub fn list_opcodes(&mut self, provider: ProviderID) -> Result<HashSet<Opcode>> {
         let result = self
             .send_operation_to_provider(NativeOperation::ListOpcodes(OpListOpcodes {}), provider)?;
@@ -297,6 +315,7 @@ impl TestClient {
         }
     }
 
+    /// Executes a ping operation on one provider.
     pub fn ping(&mut self, provider: ProviderID) -> Result<(u8, u8)> {
         let result = self.send_operation_to_provider(NativeOperation::Ping(OpPing {}), provider)?;
 
