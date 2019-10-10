@@ -17,6 +17,8 @@
 ![PARSEC logo](PARSEC.png)
 # PARSEC Test Client
 
+![](https://github.com/parallaxsecond/parsec-client-test/workflows/Continuous%20Integration/badge.svg)
+
 This repository is a PARSEC Client library used for tests. Check the `tests` folder of the
 parallaxsecond/parsec repository to see how they are used.
 
