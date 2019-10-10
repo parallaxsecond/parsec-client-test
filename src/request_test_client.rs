@@ -16,6 +16,7 @@ use parsec_interface::requests::request::RawHeader;
 use parsec_interface::requests::{Request, Response, Result};
 use std::io::Write;
 use std::os::unix::net::UnixStream;
+use std::thread;
 use std::time::Duration;
 
 /// Low level client structure to send a `Request` and get a `Response`.
@@ -37,8 +38,14 @@ impl RequestTestClient {
 
     /// Send a request and get a response.
     pub fn send_request(&mut self, request: Request) -> Result<Response> {
-        let mut stream =
-            UnixStream::connect(SOCKET_PATH).expect("Failed to connect to Unix socket");
+        // Try to connect once, wait for a timeout until trying again.
+        let mut stream = UnixStream::connect(SOCKET_PATH);
+        if stream.is_err() {
+            thread::sleep(self.timeout);
+            stream = UnixStream::connect(SOCKET_PATH);
+        }
+        let mut stream = stream.expect("Failed to connect to Unix socket");
+
         stream
             .set_read_timeout(Some(self.timeout))
             .expect("Failed to set read timeout for stream");
@@ -56,8 +63,14 @@ impl RequestTestClient {
     ///
     /// Send a raw request header and a collection of bytes.
     pub fn send_raw_request(&mut self, request_hdr: RawHeader, bytes: Vec<u8>) -> Result<Response> {
-        let mut stream =
-            UnixStream::connect(SOCKET_PATH).expect("Failed to connect to Unix socket");
+        // Try to connect once, wait for a timeout until trying again.
+        let mut stream = UnixStream::connect(SOCKET_PATH);
+        if stream.is_err() {
+            thread::sleep(self.timeout);
+            stream = UnixStream::connect(SOCKET_PATH);
+        }
+        let mut stream = stream.expect("Failed to connect to Unix socket");
+
         stream
             .set_read_timeout(Some(self.timeout))
             .expect("Failed to set read timeout for stream");
