@@ -17,11 +17,8 @@
 ![PARSEC logo](PARSEC.png)
 # PARSEC Test Client
 
-This repository is a PARSEC Client library used for tests. Integration tests of this library are used as integration
-tests for the PARSEC service.
-This library is used to perform two kinds of integration tests:
-* Normal tests. They can be executed when `parsec` is running by executing `cargo test --test normal`.
-* Shutdown persistency tests. They test that the PARSEC service is still running correctly even if it shutdowns. They are executed with `cargo test --test persistent-before`, restarting `parsec` and then `cargo test --test persistent-after`.
+This repository is a PARSEC Client library used for tests. Check the `tests` folder of the
+parallaxsecond/parsec repository to see how they are used.
 
 # License
 
