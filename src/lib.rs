@@ -65,7 +65,9 @@
 mod abstract_test_client;
 mod operation_test_client;
 mod request_test_client;
+mod stress_test_client;
 
 pub use abstract_test_client::TestClient;
 pub use operation_test_client::OperationTestClient;
 pub use request_test_client::RequestTestClient;
+pub use stress_test_client::{StressTestClient, StressTestConfig};
