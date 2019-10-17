@@ -29,6 +29,7 @@ The software is provided under Apache-2.0. Contributions to this project are acc
 This project uses the following third party crates:
 * num (MIT and Apache-2.0)
 * rand (Apache-2.0)
+* log (Apache-2.0)
 
 # Contributing
 
