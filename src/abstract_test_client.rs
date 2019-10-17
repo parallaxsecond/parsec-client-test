@@ -13,6 +13,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 use super::OperationTestClient;
+use log::error;
 use parsec_interface::operations::key_attributes::*;
 use parsec_interface::operations::OpPing;
 use parsec_interface::operations::ProviderInfo;
@@ -340,7 +341,7 @@ impl Drop for TestClient {
                 self.provider = Some(*provider);
                 self.auth = RequestAuth::from_bytes(auth.clone());
                 if self.destroy_key(key_name.clone()).is_err() {
-                    println!("Failed to destroy key '{}'", key_name);
+                    error!("Failed to destroy key '{}'", key_name);
                 }
             }
         }

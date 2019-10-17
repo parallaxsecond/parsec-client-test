@@ -13,6 +13,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 use crate::TestClient;
+use log::info;
 use parsec_interface::operations::key_attributes::*;
 use rand::Rng;
 use rand::{
@@ -71,7 +72,7 @@ pub struct StressTestClient;
 
 impl StressTestClient {
     pub fn execute(config: StressTestConfig) {
-        println!("Starting stress test");
+        info!("Starting stress test");
 
         let mut threads = Vec::new();
         for _ in 0..config.no_threads {
@@ -110,7 +111,7 @@ impl StressTestWorker {
 
         // Create unique client auth
         let auth = generate_string(10);
-        println!("Worker with auth `{}` starting.", auth);
+        info!("Worker with auth `{}` starting.", auth);
         client.set_auth(auth.as_bytes().to_owned());
 
         // Create sign/verify key
@@ -143,38 +144,38 @@ impl StressTestWorker {
 
     fn execute_request(&mut self) {
         let op: Operation = rand::random();
-        println!("Executing operation: {:?}", op);
+        info!("Executing operation: {:?}", op);
 
         match op {
             Operation::CreateKey => {
                 let key_name = generate_string(10);
-                println!("Creating key with name: {}", key_name);
+                info!("Creating key with name: {}", key_name);
                 self.client
                     .create_rsa_sign_key(key_name)
                     .expect("Failed to create key");
             }
             Operation::Sign => {
-                println!("Signing with key: {}", self.test_key_name.clone());
+                info!("Signing with key: {}", self.test_key_name.clone());
                 self.client
                     .sign(self.test_key_name.clone(), HASH.to_vec())
                     .expect("Failed to sign");
             }
             Operation::Verify => {
-                println!("Verifying with key: {}", self.test_key_name.clone());
+                info!("Verifying with key: {}", self.test_key_name.clone());
                 self.client
                     .verify(self.test_key_name.clone(), HASH.to_vec(), vec![0xff; 128])
                     .expect_err("Failed to verify");
             }
             Operation::DestroyKey => {
                 let key_name = generate_string(10);
-                println!("Destroying key with name: {}", key_name);
+                info!("Destroying key with name: {}", key_name);
                 self.client
                     .destroy_key(key_name)
                     .expect_err("Failed to destroy key");
             }
             Operation::ImportKey => {
                 let key_name = generate_string(10);
-                println!("Importing key with name: {}", key_name);
+                info!("Importing key with name: {}", key_name);
                 self.client
                     .import_key(
                         key_name,
@@ -185,7 +186,7 @@ impl StressTestWorker {
                     .expect("Failed to import key");
             }
             Operation::ExportPublicKey => {
-                println!(
+                info!(
                     "Exporting public key with name: {}",
                     self.test_key_name.clone()
                 );
@@ -209,7 +210,7 @@ impl ServiceChecker {
         let key_name = String::from("checking_key");
 
         loop {
-            println!("Verifying that the service is still operating correctly");
+            info!("Verifying that the service is still operating correctly");
             client
                 .create_rsa_sign_key(key_name.clone())
                 .expect("Failed to create signing key");
