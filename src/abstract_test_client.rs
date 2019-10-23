@@ -144,7 +144,6 @@ impl TestClient {
         let create_key = OpCreateKey {
             key_name: key_name.clone(),
             key_attributes: KeyAttributes {
-                key_lifetime: KeyLifetime::Persistent,
                 key_type,
                 ecc_curve: None,
                 algorithm,
@@ -200,7 +199,6 @@ impl TestClient {
         let import = OpImportKey {
             key_name: key_name.clone(),
             key_attributes: KeyAttributes {
-                key_lifetime: KeyLifetime::Persistent,
                 key_type,
                 ecc_curve: None,
                 algorithm,
@@ -229,10 +227,7 @@ impl TestClient {
 
     /// Exports a public key.
     pub fn export_public_key(&mut self, key_name: String) -> Result<Vec<u8>> {
-        let export = OpExportPublicKey {
-            key_name,
-            key_lifetime: KeyLifetime::Persistent,
-        };
+        let export = OpExportPublicKey { key_name };
 
         let result = self.send_operation(NativeOperation::ExportPublicKey(export))?;
 
@@ -247,7 +242,6 @@ impl TestClient {
     pub fn destroy_key(&mut self, key_name: String) -> Result<()> {
         let destroy_key = OpDestroyKey {
             key_name: key_name.clone(),
-            key_lifetime: KeyLifetime::Persistent,
         };
 
         self.send_operation(NativeOperation::DestroyKey(destroy_key))?;
@@ -266,7 +260,6 @@ impl TestClient {
     pub fn sign(&mut self, key_name: String, hash: Vec<u8>) -> Result<Vec<u8>> {
         let asym_sign = OpAsymSign {
             key_name: key_name.clone(),
-            key_lifetime: KeyLifetime::Persistent,
             hash: hash.clone(),
         };
 
@@ -283,7 +276,6 @@ impl TestClient {
     pub fn verify(&mut self, key_name: String, hash: Vec<u8>, signature: Vec<u8>) -> Result<()> {
         let asym_verify = OpAsymVerify {
             key_name,
-            key_lifetime: KeyLifetime::Persistent,
             hash,
             signature,
         };
