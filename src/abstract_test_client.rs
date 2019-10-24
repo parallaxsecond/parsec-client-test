@@ -202,7 +202,7 @@ impl TestClient {
                 key_type,
                 ecc_curve: None,
                 algorithm,
-                key_size: key_data.len() as u32,
+                key_size: 0,
                 permit_sign: true,
                 permit_verify: true,
                 permit_export: true,
