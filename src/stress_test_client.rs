@@ -15,6 +15,7 @@
 use crate::TestClient;
 use log::info;
 use parsec_interface::operations::key_attributes::*;
+use parsec_interface::requests::ResponseStatus;
 use rand::Rng;
 use rand::{
     distributions::{Alphanumeric, Distribution, Standard},
@@ -60,11 +61,11 @@ fn generate_string(size: usize) -> String {
 
 #[derive(Debug)]
 enum Operation {
-    CreateKey,
+    CreateDestroyKey,
     Sign,
     Verify,
     DestroyKey,
-    ImportKey,
+    ImportDestroyKey,
     ExportPublicKey,
 }
 
@@ -147,12 +148,15 @@ impl StressTestWorker {
         info!("Executing operation: {:?}", op);
 
         match op {
-            Operation::CreateKey => {
+            Operation::CreateDestroyKey => {
                 let key_name = generate_string(10);
                 info!("Creating key with name: {}", key_name);
                 self.client
-                    .create_rsa_sign_key(key_name)
+                    .create_rsa_sign_key(key_name.clone())
                     .expect("Failed to create key");
+                self.client
+                    .destroy_key(key_name)
+                    .expect("Failed to destroy key");
             }
             Operation::Sign => {
                 info!("Signing with key: {}", self.test_key_name.clone());
@@ -164,7 +168,16 @@ impl StressTestWorker {
                 info!("Verifying with key: {}", self.test_key_name.clone());
                 self.client
                     .verify(self.test_key_name.clone(), HASH.to_vec(), vec![0xff; 128])
-                    .expect_err("Failed to verify");
+                    .expect_err("Verification should faild.");
+                let status = self
+                    .client
+                    .verify(self.test_key_name.clone(), HASH.to_vec(), vec![0xff; 128])
+                    .expect_err("Verification should faild.");
+                if !(status == ResponseStatus::PsaErrorInvalidSignature
+                    || status == ResponseStatus::PsaErrorTamperingDetected)
+                {
+                    panic!("An invalid signature or a tampering detection should be the only reasons of the verification failing. Status returned: {}.", status);
+                }
             }
             Operation::DestroyKey => {
                 let key_name = generate_string(10);
@@ -173,17 +186,20 @@ impl StressTestWorker {
                     .destroy_key(key_name)
                     .expect_err("Failed to destroy key");
             }
-            Operation::ImportKey => {
+            Operation::ImportDestroyKey => {
                 let key_name = generate_string(10);
                 info!("Importing key with name: {}", key_name);
                 self.client
                     .import_key(
-                        key_name,
+                        key_name.clone(),
                         KeyType::RsaPublicKey,
                         Algorithm::sign(SignAlgorithm::RsaPkcs1v15Sign, None),
                         KEY_DATA.to_vec(),
                     )
                     .expect("Failed to import key");
+                self.client
+                    .destroy_key(key_name)
+                    .expect("Failed to destroy key");
             }
             Operation::ExportPublicKey => {
                 info!(
@@ -238,11 +254,11 @@ impl ServiceChecker {
 impl Distribution<Operation> for Standard {
     fn sample<R: Rng + ?Sized>(&self, rng: &mut R) -> Operation {
         match rng.gen_range(0, 6) {
-            0 => Operation::CreateKey,
+            0 => Operation::CreateDestroyKey,
             1 => Operation::Sign,
             2 => Operation::Verify,
             3 => Operation::DestroyKey,
-            4 => Operation::ImportKey,
+            4 => Operation::ImportDestroyKey,
             _ => Operation::ExportPublicKey,
         }
     }
