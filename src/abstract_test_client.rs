@@ -96,7 +96,7 @@ impl TestClient {
         self.cached_opcodes = Some(map);
     }
 
-    fn get_cached_provider(&mut self, opcode: Opcode) -> ProviderID {
+    pub fn get_cached_provider(&mut self, opcode: Opcode) -> ProviderID {
         if self.cached_opcodes.is_none() {
             self.build_cache();
         }
