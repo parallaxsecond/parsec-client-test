@@ -42,7 +42,7 @@ const KEY_DATA: [u8; 140] = [
     39, 22, 141, 173, 85, 26, 58, 9, 128, 27, 57, 131, 2, 3, 1, 0, 1,
 ];
 
-#[derive(Copy, Clone)]
+#[derive(Copy, Clone, Debug)]
 pub struct StressTestConfig {
     pub no_threads: usize,
     pub req_per_thread: usize,
@@ -59,7 +59,7 @@ fn generate_string(size: usize) -> String {
         .collect()
 }
 
-#[derive(Debug)]
+#[derive(Copy, Clone, Debug)]
 enum Operation {
     CreateDestroyKey,
     Sign,
@@ -69,6 +69,7 @@ enum Operation {
     ExportPublicKey,
 }
 
+#[derive(Copy, Clone, Debug)]
 pub struct StressTestClient;
 
 impl StressTestClient {
@@ -134,7 +135,7 @@ impl StressTestWorker {
 
             if let Some(mut interval) = self.config.req_interval {
                 if let Some(deviation) = self.config.req_interval_deviation_millis {
-                    let dev = rand::thread_rng().gen_range(0, 2 * deviation);
+                    let dev = thread_rng().gen_range(0, 2 * deviation);
                     interval += Duration::from_millis(dev.try_into().unwrap());
                     interval -= Duration::from_millis(deviation.try_into().unwrap());
                 }
@@ -160,13 +161,15 @@ impl StressTestWorker {
             }
             Operation::Sign => {
                 info!("Signing with key: {}", self.test_key_name.clone());
-                self.client
+                let _ = self
+                    .client
                     .sign(self.test_key_name.clone(), HASH.to_vec())
                     .expect("Failed to sign");
             }
             Operation::Verify => {
                 info!("Verifying with key: {}", self.test_key_name.clone());
-                self.client
+                let _ = self
+                    .client
                     .verify(self.test_key_name.clone(), HASH.to_vec(), vec![0xff; 128])
                     .expect_err("Verification should faild.");
                 let status = self
@@ -182,7 +185,8 @@ impl StressTestWorker {
             Operation::DestroyKey => {
                 let key_name = generate_string(10);
                 info!("Destroying key with name: {}", key_name);
-                self.client
+                let _ = self
+                    .client
                     .destroy_key(key_name)
                     .expect_err("Failed to destroy key");
             }
@@ -206,7 +210,8 @@ impl StressTestWorker {
                     "Exporting public key with name: {}",
                     self.test_key_name.clone()
                 );
-                self.client
+                let _ = self
+                    .client
                     .export_public_key(self.test_key_name.clone())
                     .expect("Failed to export key");
             }

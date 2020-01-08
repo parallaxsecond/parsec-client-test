@@ -26,6 +26,7 @@ use parsec_interface::requests::{request::RequestAuth, Opcode, ProviderID, Resul
 use std::collections::{HashMap, HashSet};
 
 /// Client structure automatically choosing a provider and high-level operation functions.
+#[derive(Debug)]
 pub struct TestClient {
     op_client: OperationTestClient,
     cached_opcodes: Option<HashMap<ProviderID, HashSet<Opcode>>>,
@@ -64,7 +65,7 @@ impl TestClient {
     /// By default the `TestClient` instance will destroy the keys it created when it is dropped,
     /// unless this function is called.
     pub fn do_not_destroy_keys(&mut self) {
-        self.created_keys.take();
+        let _ = self.created_keys.take();
     }
 
     fn build_cache(&mut self) {
@@ -88,7 +89,7 @@ impl TestClient {
                     )
                     .expect("List opcodes failed");
                 if let NativeResult::ListOpcodes(opcode_result) = opcode_result {
-                    map.insert(provider.id, opcode_result.opcodes);
+                    let _ = map.insert(provider.id, opcode_result.opcodes);
                 }
             }
         }
@@ -157,13 +158,13 @@ impl TestClient {
             },
         };
 
-        self.send_operation(NativeOperation::CreateKey(create_key))?;
+        let _ = self.send_operation(NativeOperation::CreateKey(create_key))?;
 
         let provider = self.provider(Opcode::CreateKey);
         let auth = self.auth.bytes().to_vec();
 
         if let Some(ref mut created_keys) = self.created_keys {
-            created_keys.insert((key_name, auth, provider));
+            let _ = created_keys.insert((key_name, auth, provider));
         }
 
         Ok(())
@@ -182,7 +183,7 @@ impl TestClient {
             let auth = self.auth.bytes().to_vec();
 
             if let Some(ref mut created_keys) = self.created_keys {
-                created_keys.insert((key_name, auth, provider));
+                let _ = created_keys.insert((key_name, auth, provider));
             }
         }
         result
@@ -213,13 +214,13 @@ impl TestClient {
             key_data,
         };
 
-        self.send_operation(NativeOperation::ImportKey(import))?;
+        let _ = self.send_operation(NativeOperation::ImportKey(import))?;
 
         let provider = self.provider(Opcode::ImportKey);
         let auth = self.auth.bytes().to_vec();
 
         if let Some(ref mut created_keys) = self.created_keys {
-            created_keys.insert((key_name, auth, provider));
+            let _ = created_keys.insert((key_name, auth, provider));
         }
 
         Ok(())
@@ -244,13 +245,13 @@ impl TestClient {
             key_name: key_name.clone(),
         };
 
-        self.send_operation(NativeOperation::DestroyKey(destroy_key))?;
+        let _ = self.send_operation(NativeOperation::DestroyKey(destroy_key))?;
 
         let provider = self.provider(Opcode::DestroyKey);
         let auth = self.auth.bytes().to_vec();
 
         if let Some(ref mut created_keys) = self.created_keys {
-            created_keys.remove(&(key_name, auth, provider));
+            let _ = created_keys.remove(&(key_name, auth, provider));
         }
 
         Ok(())
@@ -280,7 +281,7 @@ impl TestClient {
             signature,
         };
 
-        self.send_operation(NativeOperation::AsymVerify(asym_verify))?;
+        let _ = self.send_operation(NativeOperation::AsymVerify(asym_verify))?;
 
         Ok(())
     }

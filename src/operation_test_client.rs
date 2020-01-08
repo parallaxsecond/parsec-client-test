@@ -12,16 +12,19 @@
 // WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
+use super::RequestTestClient;
+use derivative::Derivative;
 use parsec_interface::operations::{Convert, NativeOperation, NativeResult};
 use parsec_interface::operations_protobuf::ProtobufConverter;
 use parsec_interface::requests::{
     request::RequestAuth, AuthType, BodyType, ProviderID, Request, Response, ResponseStatus, Result,
 };
 
-use super::RequestTestClient;
-
 /// Client structure to send a `NativeOperation` and get a `NativeResult`.
+#[derive(Derivative)]
+#[derivative(Debug)]
 pub struct OperationTestClient {
+    #[derivative(Debug = "ignore")]
     converter: Box<dyn Convert>,
     version_maj: u8,
     version_min: u8,

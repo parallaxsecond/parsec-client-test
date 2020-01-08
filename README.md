@@ -14,12 +14,11 @@
   -- See the License for the specific language governing permissions and
   -- limitations under the License.
 --->
-![PARSEC logo](PARSEC.png)
-# PARSEC Test Client
+# Parsec Test Client
 
 ![](https://github.com/parallaxsecond/parsec-client-test/workflows/Continuous%20Integration/badge.svg)
 
-This repository is a PARSEC Client library used for tests. Check the `tests` folder of the
+This repository is a Parsec Client library used for tests. Check the `tests` folder of the
 parallaxsecond/parsec repository to see how they are used.
 
 # License
@@ -30,6 +29,7 @@ This project uses the following third party crates:
 * num (MIT and Apache-2.0)
 * rand (Apache-2.0)
 * log (Apache-2.0)
+* derivative (MIT and Apache-2.0)
 
 # Contributing
 
