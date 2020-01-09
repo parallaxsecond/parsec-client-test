@@ -1,6 +1,6 @@
 [package]
 name = "parsec-client-test"
-version = "0.1.8"
+version = "0.1.9"
 authors = ["Paul Howard <paul.howard@arm.com>",
            "Ionut Mihalcea <ionut.mihalcea@arm.com>",
            "Hugues de Valon <hugues.devalon@arm.com>"]
@@ -11,6 +11,7 @@ parsec-interface = { git = "https://github.com/parallaxsecond/parsec-interface-r
 num = "0.2.0"
 rand = "0.7.2"
 log = "0.4.8"
+derivative = "1.0.3"
 
 [features]
 default = ["testing"]

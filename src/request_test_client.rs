@@ -20,6 +20,7 @@ use std::thread;
 use std::time::Duration;
 
 /// Low level client structure to send a `Request` and get a `Response`.
+#[derive(Copy, Clone, Debug)]
 pub struct RequestTestClient {
     timeout: Duration,
 }
