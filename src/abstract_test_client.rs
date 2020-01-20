@@ -175,7 +175,7 @@ impl TestClient {
         let result = self.create_key(
             key_name.clone(),
             KeyType::RsaKeypair,
-            Algorithm::sign(SignAlgorithm::RsaPkcs1v15Sign, None),
+            Algorithm::sign(SignAlgorithm::RsaPkcs1v15Sign, Some(HashAlgorithm::Sha256)),
         );
 
         if result.is_ok() {
@@ -259,10 +259,7 @@ impl TestClient {
 
     /// Signs a short digest with a key.
     pub fn sign(&mut self, key_name: String, hash: Vec<u8>) -> Result<Vec<u8>> {
-        let asym_sign = OpAsymSign {
-            key_name: key_name.clone(),
-            hash: hash.clone(),
-        };
+        let asym_sign = OpAsymSign { key_name, hash };
 
         let result = self.send_operation(NativeOperation::AsymSign(asym_sign))?;
 
