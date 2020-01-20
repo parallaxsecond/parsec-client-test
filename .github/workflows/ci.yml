@@ -15,7 +15,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v1
-    - run: cargo clippy
+    - run: cargo clippy --all-targets --all-features -- -D warnings
 
   build:
     name: Build

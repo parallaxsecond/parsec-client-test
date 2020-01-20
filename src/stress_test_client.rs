@@ -197,7 +197,10 @@ impl StressTestWorker {
                     .import_key(
                         key_name.clone(),
                         KeyType::RsaPublicKey,
-                        Algorithm::sign(SignAlgorithm::RsaPkcs1v15Sign, None),
+                        Algorithm::sign(
+                            SignAlgorithm::RsaPkcs1v15Sign,
+                            Some(HashAlgorithm::Sha256),
+                        ),
                         KEY_DATA.to_vec(),
                     )
                     .expect("Failed to import key");
