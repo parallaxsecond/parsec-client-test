@@ -19,6 +19,8 @@ use std::os::unix::net::UnixStream;
 use std::thread;
 use std::time::Duration;
 
+const MAX_BODY_SIZE: usize = 1 << 31;
+
 /// Low level client structure to send a `Request` and get a `Response`.
 #[derive(Copy, Clone, Debug)]
 pub struct RequestTestClient {
@@ -57,7 +59,7 @@ impl RequestTestClient {
         request
             .write_to_stream(&mut stream)
             .expect("Failed to write request to socket.");
-        Response::read_from_stream(&mut stream)
+        Response::read_from_stream(&mut stream, MAX_BODY_SIZE)
     }
 
     /// Send a raw request.
@@ -86,6 +88,6 @@ impl RequestTestClient {
             .write_all(&bytes)
             .expect("Failed to write bytes to stream");
 
-        Response::read_from_stream(&mut stream)
+        Response::read_from_stream(&mut stream, MAX_BODY_SIZE)
     }
 }
