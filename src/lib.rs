@@ -17,15 +17,12 @@
     const_err,
     dead_code,
     improper_ctypes,
-    legacy_directory_ownership,
     non_shorthand_field_patterns,
     no_mangle_generic_items,
     overflowing_literals,
     path_statements,
     patterns_in_fns_without_body,
-    plugin_as_library,
     private_in_public,
-    safe_extern_statics,
     unconditional_recursion,
     unused,
     unused_allocation,
@@ -43,10 +40,12 @@
     unused_results,
     missing_copy_implementations
 )]
-//! # PARSEC Test Client library
+// This one is hard to avoid.
+#![allow(clippy::multiple_crate_versions)]
+//! # Parsec Test Client library
 //!
-//! This library exposes minimal functions to communicate with the PARSEC service as a real client
-//! would do. It is used to perform integration tests on the PARSEC service as a whole.
+//! This library exposes minimal functions to communicate with the Parsec service as a real client
+//! would do. It is used to perform integration tests on the Parsec service as a whole.
 //!
 //! It contains three subclients to communicate on different abstraction levels.
 //!

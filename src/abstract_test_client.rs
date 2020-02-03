@@ -283,7 +283,7 @@ impl TestClient {
         Ok(())
     }
 
-    /// Lists the provider available for the PARSEC service.
+    /// Lists the provider available for the Parsec service.
     pub fn list_providers(&mut self) -> Result<Vec<ProviderInfo>> {
         let result = self.send_operation(NativeOperation::ListProviders(OpListProviders {}))?;
 

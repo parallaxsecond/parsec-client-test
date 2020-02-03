@@ -1,13 +1,20 @@
 [package]
 name = "parsec-client-test"
-version = "0.1.13"
+version = "0.1.14"
 authors = ["Paul Howard <paul.howard@arm.com>",
            "Ionut Mihalcea <ionut.mihalcea@arm.com>",
            "Hugues de Valon <hugues.devalon@arm.com>"]
+description = "Parsec Test Client library to perform integration testing with the Parsec service"
+license = "Apache-2.0"
+repository = "https://github.com/parallaxsecond/parsec-client-test"
+readme = "README.md"
+keywords = ["parsec", "testing"]
+categories = ["development-tools"]
 edition = "2018"
+publish = false
 
 [dependencies]
-parsec-interface = { git = "https://github.com/parallaxsecond/parsec-interface-rs", tag = "0.6.0"  }
+parsec-interface = { git = "https://github.com/parallaxsecond/parsec-interface-rs", tag = "0.6.1"  }
 num = "0.2.0"
 rand = "0.7.2"
 log = "0.4.8"
