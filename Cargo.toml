@@ -1,6 +1,6 @@
 [package]
 name = "parsec-client-test"
-version = "0.1.15"
+version = "0.1.16"
 authors = ["Paul Howard <paul.howard@arm.com>",
            "Ionut Mihalcea <ionut.mihalcea@arm.com>",
            "Hugues de Valon <hugues.devalon@arm.com>"]
@@ -14,7 +14,7 @@ edition = "2018"
 publish = false
 
 [dependencies]
-parsec-interface = "0.7.1"
+parsec-interface = "0.8.1"
 num = "0.2.0"
 rand = "0.7.2"
 log = "0.4.8"
