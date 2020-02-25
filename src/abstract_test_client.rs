@@ -36,7 +36,7 @@ pub struct TestClient {
 }
 
 impl TestClient {
-    /// Creates a TestClient instance with no provider or authentication set.
+    /// Creates a TestClient instance with no provider and a default authentication value of "root".
     ///
     /// For each request, a provider able to execute the operation will be chosen.
     /// The keys creates by this client will be automatically destroyed when it is dropped unless
@@ -46,7 +46,7 @@ impl TestClient {
             op_client: OperationTestClient::new(),
             cached_opcodes: None,
             provider: None,
-            auth: RequestAuth::from_bytes(Vec::new()),
+            auth: RequestAuth::from_bytes(Vec::from("root")),
             created_keys: Some(HashSet::new()),
         }
     }
