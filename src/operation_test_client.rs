@@ -37,7 +37,7 @@ pub struct OperationTestClient {
 #[allow(clippy::new_without_default)]
 impl OperationTestClient {
     /// Creates a OperationTestClient instance. The minimal client uses a timeout of 5 seconds on reads
-    /// and writes on the socket. It uses the version 1.0 to form request, the simple
+    /// and writes on the socket. It uses the version 1.0 to form request, the direct
     /// authentication method and protobuf format as content type.
     pub fn new() -> OperationTestClient {
         OperationTestClient {
@@ -46,7 +46,7 @@ impl OperationTestClient {
             version_min: 0,
             content_type: BodyType::Protobuf,
             accept_type: BodyType::Protobuf,
-            auth_type: AuthType::Simple,
+            auth_type: AuthType::Direct,
             request_client: RequestTestClient::new(),
         }
     }
