@@ -14,14 +14,19 @@
 // limitations under the License.
 use super::OperationTestClient;
 use log::error;
-use parsec_interface::operations::key_attributes::*;
-use parsec_interface::operations::OpPing;
-use parsec_interface::operations::ProviderInfo;
+use parsec_interface::operations::list_opcodes::Operation as ListOpcodes;
+use parsec_interface::operations::list_providers::{Operation as ListProviders, ProviderInfo};
+use parsec_interface::operations::ping::Operation as Ping;
+use parsec_interface::operations::psa_algorithm::{Algorithm, AsymmetricSignature, Hash};
+use parsec_interface::operations::psa_destroy_key::Operation as PsaDestroyKey;
+use parsec_interface::operations::psa_export_public_key::Operation as PsaExportPublicKey;
+use parsec_interface::operations::psa_generate_key::Operation as PsaGenerateKey;
+use parsec_interface::operations::psa_import_key::Operation as PsaImportKey;
+use parsec_interface::operations::psa_key_attributes::*;
+use parsec_interface::operations::psa_key_attributes::{KeyAttributes, KeyPolicy, UsageFlags};
+use parsec_interface::operations::psa_sign_hash::Operation as PsaSignHash;
+use parsec_interface::operations::psa_verify_hash::Operation as PsaVerifyHash;
 use parsec_interface::operations::{NativeOperation, NativeResult};
-use parsec_interface::operations::{OpAsymSign, OpAsymVerify};
-use parsec_interface::operations::{OpCreateKey, OpDestroyKey};
-use parsec_interface::operations::{OpExportPublicKey, OpImportKey};
-use parsec_interface::operations::{OpListOpcodes, OpListProviders};
 use parsec_interface::requests::{request::RequestAuth, Opcode, ProviderID, Result};
 use std::collections::{HashMap, HashSet};
 
@@ -73,8 +78,8 @@ impl TestClient {
         let provider_result = self
             .op_client
             .send_operation(
-                NativeOperation::ListProviders(OpListProviders {}),
-                ProviderID::CoreProvider,
+                NativeOperation::ListProviders(ListProviders {}),
+                ProviderID::Core,
                 self.auth.clone(),
             )
             .expect("List providers failed");
@@ -83,7 +88,7 @@ impl TestClient {
                 let opcode_result = self
                     .op_client
                     .send_operation(
-                        NativeOperation::ListOpcodes(OpListOpcodes {}),
+                        NativeOperation::ListOpcodes(ListOpcodes {}),
                         provider.id,
                         self.auth.clone(),
                     )
@@ -110,7 +115,7 @@ impl TestClient {
             }
         }
 
-        ProviderID::CoreProvider
+        ProviderID::Core
     }
 
     fn provider(&mut self, opcode: Opcode) -> ProviderID {
@@ -142,25 +147,32 @@ impl TestClient {
         key_type: KeyType,
         algorithm: Algorithm,
     ) -> Result<()> {
-        let create_key = OpCreateKey {
+        let create_key = PsaGenerateKey {
             key_name: key_name.clone(),
-            key_attributes: KeyAttributes {
+            attributes: KeyAttributes {
                 key_type,
-                ecc_curve: None,
-                algorithm,
-                key_size: 1024,
-                permit_sign: true,
-                permit_verify: true,
-                permit_export: true,
-                permit_derive: true,
-                permit_encrypt: true,
-                permit_decrypt: true,
+                key_policy: KeyPolicy {
+                    key_usage_flags: UsageFlags {
+                        sign_hash: true,
+                        verify_hash: true,
+                        sign_message: true,
+                        verify_message: true,
+                        export: true,
+                        encrypt: false,
+                        decrypt: false,
+                        cache: false,
+                        copy: false,
+                        derive: false,
+                    },
+                    key_algorithm: algorithm,
+                },
+                key_bits: 1024,
             },
         };
 
-        let _ = self.send_operation(NativeOperation::CreateKey(create_key))?;
+        let _ = self.send_operation(NativeOperation::PsaGenerateKey(create_key))?;
 
-        let provider = self.provider(Opcode::CreateKey);
+        let provider = self.provider(Opcode::PsaGenerateKey);
         let auth = self.auth.bytes().to_vec();
 
         if let Some(ref mut created_keys) = self.created_keys {
@@ -174,12 +186,14 @@ impl TestClient {
     pub fn create_rsa_sign_key(&mut self, key_name: String) -> Result<()> {
         let result = self.create_key(
             key_name.clone(),
-            KeyType::RsaKeypair,
-            Algorithm::sign(SignAlgorithm::RsaPkcs1v15Sign, Some(HashAlgorithm::Sha256)),
+            KeyType::RsaKeyPair,
+            Algorithm::AsymmetricSignature(AsymmetricSignature::RsaPkcs1v15Sign {
+                hash_alg: Hash::Sha256,
+            }),
         );
 
         if result.is_ok() {
-            let provider = self.provider(Opcode::CreateKey);
+            let provider = self.provider(Opcode::PsaGenerateKey);
             let auth = self.auth.bytes().to_vec();
 
             if let Some(ref mut created_keys) = self.created_keys {
@@ -197,26 +211,33 @@ impl TestClient {
         algorithm: Algorithm,
         key_data: Vec<u8>,
     ) -> Result<()> {
-        let import = OpImportKey {
+        let import = PsaImportKey {
             key_name: key_name.clone(),
-            key_attributes: KeyAttributes {
+            attributes: KeyAttributes {
                 key_type,
-                ecc_curve: None,
-                algorithm,
-                key_size: 0,
-                permit_sign: true,
-                permit_verify: true,
-                permit_export: true,
-                permit_derive: true,
-                permit_encrypt: true,
-                permit_decrypt: true,
+                key_policy: KeyPolicy {
+                    key_usage_flags: UsageFlags {
+                        sign_hash: true,
+                        verify_hash: true,
+                        sign_message: true,
+                        verify_message: true,
+                        export: true,
+                        encrypt: false,
+                        decrypt: false,
+                        cache: false,
+                        copy: false,
+                        derive: false,
+                    },
+                    key_algorithm: algorithm,
+                },
+                key_bits: 1024,
             },
-            key_data,
+            data: key_data,
         };
 
-        let _ = self.send_operation(NativeOperation::ImportKey(import))?;
+        let _ = self.send_operation(NativeOperation::PsaImportKey(import))?;
 
-        let provider = self.provider(Opcode::ImportKey);
+        let provider = self.provider(Opcode::PsaImportKey);
         let auth = self.auth.bytes().to_vec();
 
         if let Some(ref mut created_keys) = self.created_keys {
@@ -228,12 +249,12 @@ impl TestClient {
 
     /// Exports a public key.
     pub fn export_public_key(&mut self, key_name: String) -> Result<Vec<u8>> {
-        let export = OpExportPublicKey { key_name };
+        let export = PsaExportPublicKey { key_name };
 
-        let result = self.send_operation(NativeOperation::ExportPublicKey(export))?;
+        let result = self.send_operation(NativeOperation::PsaExportPublicKey(export))?;
 
-        if let NativeResult::ExportPublicKey(result) = result {
-            Ok(result.key_data)
+        if let NativeResult::PsaExportPublicKey(result) = result {
+            Ok(result.data)
         } else {
             panic!("Wrong type of result");
         }
@@ -241,13 +262,13 @@ impl TestClient {
 
     /// Destroys a key.
     pub fn destroy_key(&mut self, key_name: String) -> Result<()> {
-        let destroy_key = OpDestroyKey {
+        let destroy_key = PsaDestroyKey {
             key_name: key_name.clone(),
         };
 
-        let _ = self.send_operation(NativeOperation::DestroyKey(destroy_key))?;
+        let _ = self.send_operation(NativeOperation::PsaDestroyKey(destroy_key))?;
 
-        let provider = self.provider(Opcode::DestroyKey);
+        let provider = self.provider(Opcode::PsaDestroyKey);
         let auth = self.auth.bytes().to_vec();
 
         if let Some(ref mut created_keys) = self.created_keys {
@@ -258,34 +279,78 @@ impl TestClient {
     }
 
     /// Signs a short digest with a key.
-    pub fn sign(&mut self, key_name: String, hash: Vec<u8>) -> Result<Vec<u8>> {
-        let asym_sign = OpAsymSign { key_name, hash };
+    pub fn sign(
+        &mut self,
+        key_name: String,
+        alg: AsymmetricSignature,
+        hash: Vec<u8>,
+    ) -> Result<Vec<u8>> {
+        let asym_sign = PsaSignHash {
+            key_name,
+            alg,
+            hash,
+        };
 
-        let result = self.send_operation(NativeOperation::AsymSign(asym_sign))?;
+        let result = self.send_operation(NativeOperation::PsaSignHash(asym_sign))?;
 
-        if let NativeResult::AsymSign(result) = result {
+        if let NativeResult::PsaSignHash(result) = result {
             Ok(result.signature)
         } else {
             panic!("Wrong type of result");
         }
     }
 
-    /// Verifies a signature.
-    pub fn verify(&mut self, key_name: String, hash: Vec<u8>, signature: Vec<u8>) -> Result<()> {
-        let asym_verify = OpAsymVerify {
+    /// Signs a short digest with an RSA key.
+    pub fn sign_with_rsa_sha256(&mut self, key_name: String, hash: Vec<u8>) -> Result<Vec<u8>> {
+        self.sign(
             key_name,
+            AsymmetricSignature::RsaPkcs1v15Sign {
+                hash_alg: Hash::Sha256,
+            },
+            hash,
+        )
+    }
+
+    /// Verifies a signature.
+    pub fn verify(
+        &mut self,
+        key_name: String,
+        alg: AsymmetricSignature,
+        hash: Vec<u8>,
+        signature: Vec<u8>,
+    ) -> Result<()> {
+        let asym_verify = PsaVerifyHash {
+            key_name,
+            alg,
             hash,
             signature,
         };
 
-        let _ = self.send_operation(NativeOperation::AsymVerify(asym_verify))?;
+        let _ = self.send_operation(NativeOperation::PsaVerifyHash(asym_verify))?;
 
         Ok(())
     }
 
+    /// Verifies a signature made with an RSA key.
+    pub fn verify_with_rsa_sha256(
+        &mut self,
+        key_name: String,
+        hash: Vec<u8>,
+        signature: Vec<u8>,
+    ) -> Result<()> {
+        self.verify(
+            key_name,
+            AsymmetricSignature::RsaPkcs1v15Sign {
+                hash_alg: Hash::Sha256,
+            },
+            hash,
+            signature,
+        )
+    }
+
     /// Lists the provider available for the Parsec service.
     pub fn list_providers(&mut self) -> Result<Vec<ProviderInfo>> {
-        let result = self.send_operation(NativeOperation::ListProviders(OpListProviders {}))?;
+        let result = self.send_operation(NativeOperation::ListProviders(ListProviders {}))?;
 
         if let NativeResult::ListProviders(result) = result {
             Ok(result.providers)
@@ -297,7 +362,7 @@ impl TestClient {
     /// Lists the opcodes available for one provider to execute.
     pub fn list_opcodes(&mut self, provider: ProviderID) -> Result<HashSet<Opcode>> {
         let result = self
-            .send_operation_to_provider(NativeOperation::ListOpcodes(OpListOpcodes {}), provider)?;
+            .send_operation_to_provider(NativeOperation::ListOpcodes(ListOpcodes {}), provider)?;
 
         if let NativeResult::ListOpcodes(result) = result {
             Ok(result.opcodes)
@@ -308,10 +373,13 @@ impl TestClient {
 
     /// Executes a ping operation on one provider.
     pub fn ping(&mut self, provider: ProviderID) -> Result<(u8, u8)> {
-        let result = self.send_operation_to_provider(NativeOperation::Ping(OpPing {}), provider)?;
+        let result = self.send_operation_to_provider(NativeOperation::Ping(Ping {}), provider)?;
 
         if let NativeResult::Ping(result) = result {
-            Ok((result.supp_version_min, result.supp_version_maj))
+            Ok((
+                result.wire_protocol_version_maj,
+                result.wire_protocol_version_min,
+            ))
         } else {
             panic!("Wrong type of result");
         }

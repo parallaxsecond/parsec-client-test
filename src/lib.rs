@@ -64,14 +64,14 @@
 //!```no_run
 //!use parsec_client_test::OperationTestClient;
 //!use parsec_interface::operations::NativeOperation;
-//!use parsec_interface::operations::OpPing;
+//!use parsec_interface::operations::ping::Operation as Ping;
 //!use parsec_interface::requests::ProviderID;
 //!use parsec_interface::requests::request::RequestAuth;
 //!
 //!let mut client = OperationTestClient::new();
-//!let operation = NativeOperation::Ping(OpPing {});
+//!let operation = NativeOperation::Ping(Ping {});
 //!let result = client.send_operation(operation,
-//!                                   ProviderID::CoreProvider,
+//!                                   ProviderID::Core,
 //!                                   RequestAuth::from_bytes(Vec::new()))
 //!                   .unwrap();
 //!```
@@ -81,14 +81,14 @@
 //!```no_run
 //!use parsec_client_test::TestClient;
 //!use parsec_interface::operations::NativeOperation;
-//!use parsec_interface::operations::OpPing;
+//!use parsec_interface::operations::ping::Operation as Ping;
 //!use parsec_interface::requests::ProviderID;
 //!use parsec_interface::requests::request::RequestAuth;
 //!
 //!let mut client = TestClient::new();
 //!let key_name = String::from("🔑 What shall I sign? 🔑");
 //!client.create_rsa_sign_key(key_name.clone()).unwrap();
-//!let signature = client.sign(key_name,
+//!let signature = client.sign_with_rsa_sha256(key_name,
 //!                            String::from("Platform AbstRaction for SECurity").into_bytes())
 //!                      .unwrap();
 //!```

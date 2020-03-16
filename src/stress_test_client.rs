@@ -14,7 +14,8 @@
 // limitations under the License.
 use crate::TestClient;
 use log::info;
-use parsec_interface::operations::key_attributes::*;
+use parsec_interface::operations::psa_algorithm::*;
+use parsec_interface::operations::psa_key_attributes::*;
 use parsec_interface::requests::ResponseStatus;
 use rand::Rng;
 use rand::{
@@ -163,21 +164,29 @@ impl StressTestWorker {
                 info!("Signing with key: {}", self.test_key_name.clone());
                 let _ = self
                     .client
-                    .sign(self.test_key_name.clone(), HASH.to_vec())
+                    .sign_with_rsa_sha256(self.test_key_name.clone(), HASH.to_vec())
                     .expect("Failed to sign");
             }
             Operation::Verify => {
                 info!("Verifying with key: {}", self.test_key_name.clone());
                 let _ = self
                     .client
-                    .verify(self.test_key_name.clone(), HASH.to_vec(), vec![0xff; 128])
+                    .verify_with_rsa_sha256(
+                        self.test_key_name.clone(),
+                        HASH.to_vec(),
+                        vec![0xff; 128],
+                    )
                     .expect_err("Verification should faild.");
                 let status = self
                     .client
-                    .verify(self.test_key_name.clone(), HASH.to_vec(), vec![0xff; 128])
+                    .verify_with_rsa_sha256(
+                        self.test_key_name.clone(),
+                        HASH.to_vec(),
+                        vec![0xff; 128],
+                    )
                     .expect_err("Verification should faild.");
                 if !(status == ResponseStatus::PsaErrorInvalidSignature
-                    || status == ResponseStatus::PsaErrorTamperingDetected)
+                    || status == ResponseStatus::PsaErrorCorruptionDetected)
                 {
                     panic!("An invalid signature or a tampering detection should be the only reasons of the verification failing. Status returned: {}.", status);
                 }
@@ -197,10 +206,9 @@ impl StressTestWorker {
                     .import_key(
                         key_name.clone(),
                         KeyType::RsaPublicKey,
-                        Algorithm::sign(
-                            SignAlgorithm::RsaPkcs1v15Sign,
-                            Some(HashAlgorithm::Sha256),
-                        ),
+                        Algorithm::AsymmetricSignature(AsymmetricSignature::RsaPkcs1v15Sign {
+                            hash_alg: Hash::Sha256,
+                        }),
                         KEY_DATA.to_vec(),
                     )
                     .expect("Failed to import key");
@@ -240,11 +248,11 @@ impl ServiceChecker {
                 .expect("Failed to create signing key");
 
             let signature = client
-                .sign(key_name.clone(), HASH.to_vec())
+                .sign_with_rsa_sha256(key_name.clone(), HASH.to_vec())
                 .expect("Failed to sign");
 
             client
-                .verify(key_name.clone(), HASH.to_vec(), signature)
+                .verify_with_rsa_sha256(key_name.clone(), HASH.to_vec(), signature)
                 .expect("Verification failed");
 
             client
