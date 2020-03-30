@@ -141,16 +141,32 @@ impl TestClient {
     }
 
     /// Creates a key with specific attributes.
-    pub fn create_key(
-        &mut self,
-        key_name: String,
-        key_type: KeyType,
-        algorithm: Algorithm,
-    ) -> Result<()> {
-        let create_key = PsaGenerateKey {
+    pub fn generate_key(&mut self, key_name: String, attributes: KeyAttributes) -> Result<()> {
+        let generate_key = PsaGenerateKey {
             key_name: key_name.clone(),
-            attributes: KeyAttributes {
-                key_type,
+            attributes,
+        };
+
+        let _ = self.send_operation(NativeOperation::PsaGenerateKey(generate_key))?;
+
+        let provider = self.provider(Opcode::PsaGenerateKey);
+        let auth = self.auth.bytes().to_vec();
+
+        if let Some(ref mut created_keys) = self.created_keys {
+            let _ = created_keys.insert((key_name, auth, provider));
+        }
+
+        Ok(())
+    }
+
+    /// Generate a 1024 bits RSA key pair.
+    /// The key can only be used for signing/verifying with the RSA PKCS 1v15 signing algorithm with SHA-256 and exporting its public part.
+    pub fn generate_rsa_sign_key(&mut self, key_name: String) -> Result<()> {
+        let result = self.generate_key(
+            key_name.clone(),
+            KeyAttributes {
+                key_type: KeyType::RsaKeyPair,
+                key_bits: 1024,
                 key_policy: KeyPolicy {
                     key_usage_flags: UsageFlags {
                         sign_hash: true,
@@ -164,32 +180,13 @@ impl TestClient {
                         copy: false,
                         derive: false,
                     },
-                    key_algorithm: algorithm,
+                    key_algorithm: Algorithm::AsymmetricSignature(
+                        AsymmetricSignature::RsaPkcs1v15Sign {
+                            hash_alg: Hash::Sha256,
+                        },
+                    ),
                 },
-                key_bits: 1024,
             },
-        };
-
-        let _ = self.send_operation(NativeOperation::PsaGenerateKey(create_key))?;
-
-        let provider = self.provider(Opcode::PsaGenerateKey);
-        let auth = self.auth.bytes().to_vec();
-
-        if let Some(ref mut created_keys) = self.created_keys {
-            let _ = created_keys.insert((key_name, auth, provider));
-        }
-
-        Ok(())
-    }
-
-    /// Creates a key for RSA signing.
-    pub fn create_rsa_sign_key(&mut self, key_name: String) -> Result<()> {
-        let result = self.create_key(
-            key_name.clone(),
-            KeyType::RsaKeyPair,
-            Algorithm::AsymmetricSignature(AsymmetricSignature::RsaPkcs1v15Sign {
-                hash_alg: Hash::Sha256,
-            }),
         );
 
         if result.is_ok() {

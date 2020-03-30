@@ -120,7 +120,7 @@ impl StressTestWorker {
         // Create sign/verify key
         let test_key_name = generate_string(10);
         client
-            .create_rsa_sign_key(test_key_name.clone())
+            .generate_rsa_sign_key(test_key_name.clone())
             .expect("Failed to create key");
 
         StressTestWorker {
@@ -154,7 +154,7 @@ impl StressTestWorker {
                 let key_name = generate_string(10);
                 info!("Creating key with name: {}", key_name);
                 self.client
-                    .create_rsa_sign_key(key_name.clone())
+                    .generate_rsa_sign_key(key_name.clone())
                     .expect("Failed to create key");
                 self.client
                     .destroy_key(key_name)
@@ -244,7 +244,7 @@ impl ServiceChecker {
         loop {
             info!("Verifying that the service is still operating correctly");
             client
-                .create_rsa_sign_key(key_name.clone())
+                .generate_rsa_sign_key(key_name.clone())
                 .expect("Failed to create signing key");
 
             let signature = client
