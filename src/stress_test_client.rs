@@ -14,8 +14,6 @@
 // limitations under the License.
 use crate::TestClient;
 use log::info;
-use parsec_interface::operations::psa_algorithm::*;
-use parsec_interface::operations::psa_key_attributes::*;
 use parsec_interface::requests::ResponseStatus;
 use rand::Rng;
 use rand::{
@@ -203,14 +201,7 @@ impl StressTestWorker {
                 let key_name = generate_string(10);
                 info!("Importing key with name: {}", key_name);
                 self.client
-                    .import_key(
-                        key_name.clone(),
-                        KeyType::RsaPublicKey,
-                        Algorithm::AsymmetricSignature(AsymmetricSignature::RsaPkcs1v15Sign {
-                            hash_alg: Hash::Sha256,
-                        }),
-                        KEY_DATA.to_vec(),
-                    )
+                    .import_rsa_public_key(key_name.clone(), KEY_DATA.to_vec())
                     .expect("Failed to import key");
                 self.client
                     .destroy_key(key_name)

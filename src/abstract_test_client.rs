@@ -162,8 +162,8 @@ impl TestClient {
     /// Generate a 1024 bits RSA key pair.
     /// The key can only be used for signing/verifying with the RSA PKCS 1v15 signing algorithm with SHA-256 and exporting its public part.
     pub fn generate_rsa_sign_key(&mut self, key_name: String) -> Result<()> {
-        let result = self.generate_key(
-            key_name.clone(),
+        self.generate_key(
+            key_name,
             KeyAttributes {
                 key_type: KeyType::RsaKeyPair,
                 key_bits: 1024,
@@ -187,49 +187,20 @@ impl TestClient {
                     ),
                 },
             },
-        );
-
-        if result.is_ok() {
-            let provider = self.provider(Opcode::PsaGenerateKey);
-            let auth = self.auth.bytes().to_vec();
-
-            if let Some(ref mut created_keys) = self.created_keys {
-                let _ = created_keys.insert((key_name, auth, provider));
-            }
-        }
-        result
+        )
     }
 
     /// Imports and creates a key with specific attributes.
     pub fn import_key(
         &mut self,
         key_name: String,
-        key_type: KeyType,
-        algorithm: Algorithm,
-        key_data: Vec<u8>,
+        attributes: KeyAttributes,
+        data: Vec<u8>,
     ) -> Result<()> {
         let import = PsaImportKey {
             key_name: key_name.clone(),
-            attributes: KeyAttributes {
-                key_type,
-                key_policy: KeyPolicy {
-                    key_usage_flags: UsageFlags {
-                        sign_hash: true,
-                        verify_hash: true,
-                        sign_message: true,
-                        verify_message: true,
-                        export: true,
-                        encrypt: false,
-                        decrypt: false,
-                        cache: false,
-                        copy: false,
-                        derive: false,
-                    },
-                    key_algorithm: algorithm,
-                },
-                key_bits: 1024,
-            },
-            data: key_data,
+            attributes,
+            data,
         };
 
         let _ = self.send_operation(NativeOperation::PsaImportKey(import))?;
@@ -242,6 +213,38 @@ impl TestClient {
         }
 
         Ok(())
+    }
+
+    /// Import a 1024 bits RSA public key.
+    /// The key can only be used for verifying with the RSA PKCS 1v15 signing algorithm with SHA-256.
+    pub fn import_rsa_public_key(&mut self, key_name: String, data: Vec<u8>) -> Result<()> {
+        self.import_key(
+            key_name,
+            KeyAttributes {
+                key_type: KeyType::RsaPublicKey,
+                key_bits: 1024,
+                key_policy: KeyPolicy {
+                    key_usage_flags: UsageFlags {
+                        sign_hash: false,
+                        verify_hash: true,
+                        sign_message: false,
+                        verify_message: true,
+                        export: false,
+                        encrypt: false,
+                        decrypt: false,
+                        cache: false,
+                        copy: false,
+                        derive: false,
+                    },
+                    key_algorithm: Algorithm::AsymmetricSignature(
+                        AsymmetricSignature::RsaPkcs1v15Sign {
+                            hash_alg: Hash::Sha256,
+                        },
+                    ),
+                },
+            },
+            data,
+        )
     }
 
     /// Exports a public key.
