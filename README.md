@@ -14,24 +14,11 @@
   -- See the License for the specific language governing permissions and
   -- limitations under the License.
 --->
-# Parsec Test Client
+# DEPRECATED: Parsec Test Client
 
-![](https://github.com/parallaxsecond/parsec-client-test/workflows/Continuous%20Integration/badge.svg)
+The Parsec test clients have been moved to Parsec main repository.
+See the [PR](https://github.com/parallaxsecond/parsec/pull/150) for details.
 
-This repository is a Parsec Client library used for tests. Check the `tests` folder of the
-parallaxsecond/parsec repository to see how they are used.
-
-# License
-
-The software is provided under Apache-2.0. Contributions to this project are accepted under the same license.
-
-This project uses the following third party crates:
-* num (MIT and Apache-2.0)
-* rand (Apache-2.0)
-* log (Apache-2.0)
-* derivative (MIT and Apache-2.0)
-
-# Contributing
-
-Please check the [Contributing](CONTRIBUTING.md) to know more about the contribution process.
-
+This repository is no longer used and maintained.
+Please use the [Parsec Rust Client](https://github.com/parallaxsecond/parsec-client-rust) if you
+need a Rust client to communicate with Parsec.
